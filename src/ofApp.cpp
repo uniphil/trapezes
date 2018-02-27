@@ -7,13 +7,22 @@ int max(int a, int b) {
     return a > b ? a : b;
 }
 
+float pointySin(float x, float pointiness) {
+    float out = sin(x);
+    for (int i = 1; i < 20; i += 2) {
+        out += sin(x * i) * pow(i, -2) * pointiness;
+    }
+    return out;
+}
+
 void trapSound(vector <float> * samples, int sampleRate, float freq, float start, float stability, float trapAmp) {
     float f = freq * (1 + ofRandom(-1 + stability, 1 - stability));
     float attack = ATTACK * ofRandom(stability, pow(1 / stability, 2));
     float sustain = SUSTAIN * ofRandom(pow(stability, 2), pow(1 / stability, 2));
     float decay = DECAY * ofRandom(pow(stability, 2), pow(1 / stability, 2));
     float release = RELEASE * ofRandom(pow(stability, 2), pow(1 / stability, 2));
-    
+    float pointiness = ofRandom(0, 1 - pow(stability, .2));
+
     float phase_step = (f / sampleRate) * TWO_PI;
 
     // attack
@@ -22,7 +31,7 @@ void trapSound(vector <float> * samples, int sampleRate, float freq, float start
     for (int i = max(attack_start_step, 0); i < attack_end_step; i++) {
         float fade = (i - attack_start_step) / (float)(attack_end_step - attack_start_step);
         float amp = 0.8;
-        (*samples)[i] += trapAmp * sin(i * phase_step) * fade * amp;
+        (*samples)[i] += trapAmp * pointySin(i * phase_step, pointiness) * fade * amp;
     }
     
     // decay
@@ -32,7 +41,7 @@ void trapSound(vector <float> * samples, int sampleRate, float freq, float start
         float fade = (decay_end_step - i) / (float)(attack_end_step - attack_start_step);
         float start_amp = 0.8;
         float end_amp = 0.6;
-        (*samples)[i] += trapAmp * sin(i * phase_step) * (fade * (start_amp - end_amp) + end_amp);
+        (*samples)[i] += trapAmp * pointySin(i * phase_step, pointiness) * (fade * (start_amp - end_amp) + end_amp);
     }
     
     if (decay_end_step > (*samples).size()) {
@@ -44,7 +53,7 @@ void trapSound(vector <float> * samples, int sampleRate, float freq, float start
     int sustain_end_step = sustain_start_step + sustain * sampleRate;
     for (int i = sustain_start_step; i < min(sustain_end_step, (*samples).size()); i++) {
         float amp = 0.6;
-        (*samples)[i] += trapAmp * sin(i * phase_step) * amp;
+        (*samples)[i] += trapAmp * pointySin(i * phase_step, pointiness) * amp;
     }
 
     if (sustain_end_step > (*samples).size()) {
@@ -57,7 +66,7 @@ void trapSound(vector <float> * samples, int sampleRate, float freq, float start
     for (int i = release_start_step; i < min(release_end_step, (*samples).size()); i++) {
         float fade = (release_end_step - i) / (float)(release_end_step - release_start_step);
         float start_amp = 0.6;
-        (*samples)[i] += trapAmp * sin(i * phase_step) * fade * start_amp;
+        (*samples)[i] += trapAmp * pointySin(i * phase_step, pointiness) * fade * start_amp;
     }
 }
 
@@ -233,13 +242,9 @@ void init(vector <float> * audio) {
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    phase = 0.0;
+    outStep = 0;
     ofSoundStreamSetup(2, 0, 44100, 64, 2);
     init(&audio);
-
-    //    trapSound(&audio, 44100, 440, 0.5, 1.0);
-    outStep = 0;
-//    stability = 0.99;
 }
 
 //--------------------------------------------------------------
@@ -253,15 +258,15 @@ void ofApp::draw(){
     for (int i = outStep; i < outStep + 0.02 * 44100; i++) {
         amount += abs(audio[i]);
     }
-    ofSetBackgroundColor(amount / 2, amount / 7, amount / 4);
+    ofSetBackgroundColor(amount / 3, amount / 11, amount / 5);
 }
 
 //--------------------------------------------------------------
 void ofApp::audioOut(ofSoundBuffer &outBuffer){
     for (size_t i = 0; i < outBuffer.getNumFrames(); i++) {
         float sample = audio[outStep];
-        outBuffer.getSample(i, 0) = sample / 2.0;
-        outBuffer.getSample(i, 1) = sample / 2.0;
+        outBuffer.getSample(i, 0) = sample / 3.0;
+        outBuffer.getSample(i, 1) = sample / 3.0;
         outStep += 1;
     }
     

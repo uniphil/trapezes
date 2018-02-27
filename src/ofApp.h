@@ -27,10 +27,7 @@ class ofApp : public ofBaseApp{
 
         void audioOut(ofSoundBuffer &outBuffer);
   
-        float phase;
         float stability;
-    
-        vector <float> audio;
-    
         uint64_t outStep;
+        vector <float> audio;
 };
