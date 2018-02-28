@@ -30,4 +30,5 @@ class ofApp : public ofBaseApp{
         float stability;
         uint64_t outStep;
         vector <float> audio;
+        bool hasDrawn;
 };

@@ -9,7 +9,7 @@ int max(int a, int b) {
 
 float pointySin(float x, float pointiness) {
     float out = sin(x);
-    for (int i = 1; i < 20; i += 2) {
+    for (int i = 1; i <= 15; i += 2) {
         out += sin(x * i) * pow(i, -2) * pointiness;
     }
     return out;
@@ -243,8 +243,9 @@ void init(vector <float> * audio) {
 //--------------------------------------------------------------
 void ofApp::setup(){
     outStep = 0;
-    ofSoundStreamSetup(2, 0, 44100, 64, 2);
+    ofSoundStreamSetup(2, 0, 44100, 128, 2);
     init(&audio);
+    hasDrawn = false;
 }
 
 //--------------------------------------------------------------
@@ -254,6 +255,7 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+    hasDrawn = true;
     float amount = 0;
     for (int i = outStep; i < outStep + 0.02 * 44100; i++) {
         amount += abs(audio[i]);
@@ -263,6 +265,9 @@ void ofApp::draw(){
 
 //--------------------------------------------------------------
 void ofApp::audioOut(ofSoundBuffer &outBuffer){
+    if (!hasDrawn) {
+        return;
+    }
     for (size_t i = 0; i < outBuffer.getNumFrames(); i++) {
         float sample = audio[outStep];
         outBuffer.getSample(i, 0) = sample / 3.0;
